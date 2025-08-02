@@ -8,9 +8,10 @@ const routes=[
     path: '/',
     name: 'Home',
     component: MapView,
-  },
+  }
+  ,
   {
-    path: '/gogo_TryToREPO',
+    path: '/nice_map_demo',
     name: 'Home',
     component: MapView,
   }]
