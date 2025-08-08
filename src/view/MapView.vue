@@ -50,9 +50,18 @@
           <h3>注意cp選項要最後選!!</h3>
           選好cp後再取消作品或是勾新的作品，
           
-          cp選項就會重置，<br>
+          cp選項有機率會重置，<br>
           要重新勾。
           <br>
+          <br>
+          <h3>
+          若選作品但沒有勾cp的話，會包含該作所有cp
+          <br>
+          （僅限所有作品都沒有勾任何cp的狀況）</h3>
+          
+          同一個作品會是同個顏色(如:忘八的話會是綠色，
+          <br>
+          除非該攤位有其他作品就會是其他顏色)
           <img src="/public/images/ah.webp" alt="" class="ah">
           <img src="/public/images/pain_dog.webp" alt="" class="dog" loading="lazy">
         
@@ -122,10 +131,33 @@
             <div class="card-body">
 
               <div class="check_list ">
-                <label v-for="cp in cpOptions" :key="cp" class="select_box">
+                <!-- <label v-for="cp in cpOptions" :key="cp" class="">
+                 
+                  <div v-if="cp.includes('一般')||cp.includes('全員')" 
+                 >
+                  <div  class="select_theme">
                   <input type="checkbox" v-model="selectedCPs" :value="cp" />
-                  <span class="">{{ cp }}</span>
-                </label>
+                 <span  >{{ cp }}</span></div>
+                
+                </div>
+
+                 <div v-else class="select_box">
+                  <input type="checkbox" v-model="selectedCPs" :value="cp" />
+                 <span  >{{ cp }}</span></div>
+
+                </label> -->
+<label v-for="cp in cpOptions" :key="cp" :class="cp.includes('cp：')  ? 'select_theme' : 'select_box'">
+   <!-- 如果 cp 不包含 'cp:'，顯示 checkbox -->
+  <template v-if="!cp.includes('cp：')">
+    <input type="checkbox" v-model="selectedCPs" :value="cp" />
+    <span>{{ cp }}</span>
+  </template>
+
+  <!-- 如果 cp 包含 'cp:'，只顯示文字 -->
+  <template v-else>
+    <span>{{ cp }}</span>
+  </template>
+</label>
 
               </div>
             </div>
@@ -161,13 +193,16 @@
       <a href="https://starstonetw.weebly.com/31038222963603935338.html">nice官網</a>
       <br>
       https://www.plurk.com/p/3hghy0yngf
+      <br>https://www.plurk.com/p/3hjkdyyzk6
+      <br>https://www.plurk.com/p/3hjb87wwov
+      <br>https://www.plurk.com/p/3hjtsowtoh
     </div></div>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-
+import { debounce } from 'lodash'
 // 引用攤位的座標地圖js
 import { generateLayout } from
   '@/composables/booth_map2'
@@ -300,25 +335,30 @@ watch(selectedCategories, (newCats) => {
 //   new: newCPs,
 //   changed: newCPs !== oldCPs
 // })
-// 當CP選項改變時，只重新繪製有useCpOptions的攤位
-watch(selectedCPs, () => {
+
+// 只在 300ms 內沒有再變動時才觸發 redraw
+const debouncedRedraw = debounce(() => {
   if (drawMapRef.value && authorsWithCP.value.length > 0) {
     authorsWithCP.value.forEach(author => {
       drawMapRef.value.redraw_single(author.id)
     })
   }
-})
+}, 200)
+
+// 當CP選項改變時，只重新繪製有useCpOptions的攤位
+watch(selectedCPs, debouncedRedraw)
+
 
 //變色 - 基於分類ID決定顏色，確保相同ID永遠有相同顏色
 function getColorByIndex(index) {
-  return `hsl(${index * 30},60%,80%)`
+  return `hsl(${index * 10},60%,80%)`
 }
 
 // 基於分類ID生成固定顏色
 function getColorByCatId(id) {
   // 使用分類ID的數字部分來生成固定的顏色
   const numericId = parseInt(id.toString().replace(/\D/g, '')) || 0
-  return `hsl(${numericId * 25 % 360},60%,80%)`
+  return `hsl(${numericId * 5 % 360},60%,80%)`
 }
 
 // 新增：處理多分類的顏色選擇函數
@@ -493,7 +533,16 @@ const handleLoadingEnd = () => {
   transition: all 0.5s;
 
 }
-
+.select_theme{
+    width: 100%;
+    text-align: center;
+    margin-top: 20px;
+  margin-bottom: 2px;
+  color: white;
+  background-color: #B8C0FF;
+  border-radius: 20px;
+  font-size: 22px;
+}
 .select_row {
   display: flex;
   /* 可自動換行 */
@@ -512,7 +561,7 @@ const handleLoadingEnd = () => {
 }
 
 .check_list {
-  max-height: 150px;
+  max-height: 250px;
   overflow-y: auto;
   /* border: 1px solid #eee; */
   padding: 0.5rem;
@@ -614,7 +663,7 @@ const handleLoadingEnd = () => {
   text-decoration-line: underline;
 }
 .ex_left h3 {
-  padding-top: 50px;
+  /* padding-top: 50px; */
   color: #B8C0FF;
   font-weight: bold;
   text-decoration-line: underline;
@@ -667,7 +716,7 @@ const handleLoadingEnd = () => {
 }
 .ah{position: absolute;
   left: 1080px;
-  bottom: 100px;
+  bottom: 70px;
 width: 100px;
 transform: rotate(25deg);
 /* transform:rotate(5deg) */
@@ -675,7 +724,7 @@ transform: rotate(25deg);
 .dog{
   position: absolute;
   left: 880px;
-  bottom: 40px;
+  bottom: 25px;
   width: 200px;
   transition: all 0.3s ease; /* 明顯一點的動畫時間 */
 transform-origin: bottom;
@@ -715,7 +764,9 @@ transform:  scaleX(2) scaleY(0.2);
     background-color: white;
     margin-bottom: 40px;
   } */
-
+.text_right {
+  margin-top: 30px;
+  width: 390px;}
   /* .text_right {
     position: absolute;
     top: 70px;
