@@ -11,7 +11,7 @@ const routes=[
   }
   ,
   {
-    path: '/nice_map_demo',
+    path: '/nice_map_demo', //記得改
     name: 'Home',
     component: MapView,
   }]
